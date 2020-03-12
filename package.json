@@ -2,6 +2,7 @@
   "name": "openmask",
   "version": "0.1.0",
   "private": true,
+  "homepage":"goraegori.github.io/",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",

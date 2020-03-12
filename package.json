@@ -2,12 +2,10 @@
   "name": "openmask",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://goraegori.github.io/openmask",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
-    "deploy":"npm run build"
+    "lint": "vue-cli-service lint"
   },
   "dependencies": {
     "axios": "^0.19.2",

@@ -80,15 +80,18 @@
           this.setCenter();
         }
         var ref=this;
+
         var startLat,startLng,startLevel;
         kakao.maps.event.addListener(map, 'dragend', function() {
           ref.getStoresByGeo(map.getCenter().getLat(),map.getCenter().getLng());
         });
+
         kakao.maps.event.addListener(map, 'zoom_start', function() {
           startLat=map.getCenter().getLat();
           startLng=map.getCenter().getLng();
           startLevel=map.getLevel();
         });
+
         kakao.maps.event.addListener(map, 'zoom_changed', function() {
           if(map.getLevel()>startLevel)
             map.setCenter(new kakao.maps.LatLng(startLat,startLng));

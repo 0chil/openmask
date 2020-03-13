@@ -43,22 +43,6 @@
                             <v-btn @click="onBtnGoogleMap" color="pink lighten-1">구글</v-btn>
                             </div>
                         </v-list-item-content>
-                        <!-- <v-list-item-content>
-                            <div>
-                            <v-icon class="mr-5">mdi-android</v-icon>
-                            <v-btn @click="onBtnDaumMap" color="yellow darken-1">카카오맵</v-btn>
-                            <v-btn @click="onBtnNaverMap" color="green">네이버맵</v-btn>
-                            <v-btn @click="onBtnGoogleMap" color="pink lighten-1">구글맵</v-btn>
-                            </div>
-                        </v-list-item-content>
-                        <v-list-item-content>
-                            <div>
-                            <v-icon class="mr-5">mdi-apple</v-icon>
-                            <v-btn @click="onBtnDaumMap" color="yellow darken-1">카카오맵</v-btn>
-                            <v-btn @click="onBtnNaverMap" color="green">네이버맵</v-btn>
-                            <v-btn @click="onBtnGoogleMap" color="pink lighten-1">구글맵</v-btn>
-                            </div>
-                        </v-list-item-content> -->
                 </v-list-item>
             </v-card>
             <v-card class="mt-3">
@@ -71,10 +55,6 @@
                 :libraries="libraries"
                 @load="onLoad"
                 style="width:100%;height:350px"/>
-                <!-- <div
-                ref="map"
-                disabled
-                style="width:100%;height:350px"/> -->
             </v-card>
 </div>            
 </template>
@@ -128,12 +108,6 @@
               this.map.setZoomable(true);
             }
           },
-          showSellerInfo(bool){
-            if(bool){
-              
-                
-            }
-          }
         },
         methods:{
             onBtnDaumMap:function(){

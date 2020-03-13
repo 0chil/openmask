@@ -42,11 +42,12 @@
         />
       </v-content>
       <v-bottom-sheet v-model="showSellerInfo" inset >
-        <v-sheet class="text-center" height="100%">
+        <v-sheet height="100%">
           <SellerInfo 
             :objSellerInfo="objSellerInfo" 
             :closeSellerInfo="closeSellerInfo" 
             :showSellerInfo="showSellerInfo"
+            v-if="showSellerInfo"
           />
         </v-sheet>
       </v-bottom-sheet>
@@ -125,10 +126,6 @@ export default {
     },
     sortStoresByGeoData(){
       var ref=this;
-      // //this.storesByGeoData.stores.splice(0,1);
-      // for(var i=0;i<this.storesByGeoData.count;i++){
-      //   this.storesByGeoData.stores[i].remain_stat
-      // }
       this.storesByGeoData.stores = this.storesByGeoData.stores.sort(function(a,b){
         var x=ref.remain_stat2Number(a.remain_stat), y=ref.remain_stat2Number(b.remain_stat);
         return ((x < y) ? -1 : ((x > y) ? 1 : 0));
@@ -168,9 +165,11 @@ export default {
           if(this.$refs.mapView.markerArray.length)
             for(var i=0;i<this.$refs.mapView.markerArray.length;i++)
               this.$refs.mapView.markerArray[i].setMap(null);
-        for(var i=0;i<res.data.count;i++){
+              
+        var ref=this;
+        this.storesByGeoData.stores.forEach(function(store){
           var markerImage = null;
-          switch(res.data.stores[i].remain_stat){
+          switch(store.remain_stat){
             case 'plenty':
               markerImage=greenMarkerImage;
               break;
@@ -184,12 +183,16 @@ export default {
               markerImage=greyMarkerImage;
           }
           var thisMarker = new kakao.maps.Marker({ 
-            position: new kakao.maps.LatLng(res.data.stores[i].lat,res.data.stores[i].lng),
+            position: new kakao.maps.LatLng(store.lat,store.lng),
             image: markerImage
           });
-          this.$refs.mapView.markerArray.push(thisMarker);
-          thisMarker.setMap(this.$refs.mapView.map);
-        }
+          var thisData=store;
+          kakao.maps.event.addListener(thisMarker, 'click', function() {
+            ref.openSellerInfo(store);
+          });
+          ref.$refs.mapView.markerArray.push(thisMarker);
+          thisMarker.setMap(ref.$refs.mapView.map);
+        });
       })
     },
     Level2Range: function(level){

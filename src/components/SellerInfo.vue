@@ -1,27 +1,9 @@
 <template>
-  <v-app>
-    <v-app-bar
-      color="primary lighten-3"
-      dense
-      fixed
-      app
-    >
-      <div class="d-flex align-center" @click="closeSellerInfo" style="cursor:pointer;">
-        <v-icon
-        large
-        alt="My Mask"
-        class="mr-1 white--text">
-          mdi-arrow-left
-        </v-icon>
-      </div>
-    </v-app-bar>
-
-    <v-content>
-       <v-container v-if="this.objSellerInfo">
+<div>
             <v-card>
-                <v-list disabled rounded>
-                  <v-subheader v-text="this.objSellerInfo.name"></v-subheader>
-                  <v-list-item-group>
+                <v-list rounded class="px-3">
+                  <v-subheader><div v-text="this.objSellerInfo.name"/><v-spacer/><v-btn class="float-right" @click="closeSellerInfo" color="primary lighten-3" ><v-icon>mdi-close</v-icon></v-btn></v-subheader>
+                  
                     <v-list-item>
                       <v-list-item-icon>
                         <v-icon>mdi-clock</v-icon>
@@ -31,8 +13,6 @@
                         <v-list-item-subtitle>업데이트</v-list-item-subtitle>
                       </v-list-item-content>
                     </v-list-item>
-                  </v-list-item-group>
-                  <v-list-item-group>
                     <v-list-item>
                       <v-list-item-icon>
                         <v-icon>mdi-archive-arrow-down-outline</v-icon>
@@ -42,9 +22,7 @@
                         <v-list-item-subtitle>입고</v-list-item-subtitle>
                       </v-list-item-content>
                     </v-list-item>
-                  </v-list-item-group>
-                  <v-list-item-group :class="remain_stat2Color(this.objSellerInfo.remain_stat)">
-                    <v-list-item>
+                    <v-list-item :class="remain_stat2Color(this.objSellerInfo.remain_stat)">
                       <v-list-item-icon>
                         <v-icon>mdi-clock</v-icon>
                       </v-list-item-icon>
@@ -53,7 +31,6 @@
                         <v-list-item-subtitle>재고</v-list-item-subtitle>
                       </v-list-item-content>
                     </v-list-item>
-                  </v-list-item-group>
                 </v-list>
             </v-card>
             <v-card class="mt-3">
@@ -87,25 +64,22 @@
             <v-card class="mt-3">
                 <v-subheader> <v-switch v-model="showStaticMap" label="지도 고정"></v-switch></v-subheader>
                 <vue-daum-map
-                v-if="!showStaticMap"
                 :appKey="appKey"
                 :center.sync="center"
                 :level.sync="level"
                 :mapTypeId="mapTypeId"
                 :libraries="libraries"
                 @load="onLoad"
-                style="width:100%;height:300px"/>
-                <div
-                v-show="showStaticMap"
-                ref="staticMap"
-                style="width:100%;height:300px"/>
+                style="width:100%;height:350px"/>
+                <!-- <div
+                ref="map"
+                disabled
+                style="width:100%;height:350px"/> -->
             </v-card>
-       </v-container>
-    </v-content>
-  </v-app>
+</div>            
 </template>
 
-<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=6f428547f8ff26402d2ede8daa8b240c"></script>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=6f428547f8ff26402d2ede8daa8b240c&autoload=false"></script>
 
 <script>
     import VueDaumMap from 'vue-daum-map';
@@ -115,17 +89,16 @@
         },
         props: {
             closeSellerInfo: {type: Function},
-            objSellerInfo:{},
+            objSellerInfo:{default:null},
         },
         data() {
             return {
                 key: 1,
                 activeBtn:1,
                 showStaticMap:true,
-                staticMap:null,
 
                 appKey: '6f428547f8ff26402d2ede8daa8b240c',
-                center: {lat:this.objSellerInfo.lat, lng:this.objSellerInfo.lng},
+                center: {lat:this.objSellerInfo.lat, lng:  this.objSellerInfo.lng},
                 level: 4, 
                 mapTypeId: VueDaumMap.MapTypeId.NORMAL, 
                 libraries: [],
@@ -134,17 +107,33 @@
             }
         },
         mounted:function(){
-            if(staticMap) staticMap=null;
-            var staticMapOption = { 
-                center: new kakao.maps.LatLng(this.objSellerInfo.lat, this.objSellerInfo.lng),
-                level: 4, 
-                marker: {
-                    position : new kakao.maps.LatLng(this.objSellerInfo.lat, this.objSellerInfo.lng),
-                    text : this.objSellerInfo.name
-                }  
-            };
-            var staticMap = new kakao.maps.StaticMap(this.$refs.staticMap, staticMapOption);
 
+            // var option = { 
+            //     center: new kakao.maps.LatLng(this.objSellerInfo.lat, this.objSellerInfo.lng),
+            //     level: 3, 
+            // };
+            // var map=new kakao.maps.Map(this.$refs.map,option);
+            // this.map= map;
+            // this.onLoad(map);
+        },
+        watch:{
+          showStaticMap(bool){
+            if(bool){
+              this.map.setCenter(new kakao.maps.LatLng(this.objSellerInfo.lat,this.objSellerInfo.lng));
+              this.map.setDraggable(false);
+              this.map.setZoomable(false);
+            }
+            else{
+              this.map.setDraggable(true);
+              this.map.setZoomable(true);
+            }
+          },
+          showSellerInfo(bool){
+            if(bool){
+              
+                
+            }
+          }
         },
         methods:{
             onBtnDaumMap:function(){
@@ -157,11 +146,16 @@
                 window.open('https://www.google.com/maps/search/?api=1&query='+this.objSellerInfo.lat+','+ this.objSellerInfo.lng);
             },
             onLoad (map) {
-                this.map = map;
+                this.map=map;
+                map.setDraggable(false);
+                map.setZoomable(false);
+                map.setMaxLevel(6);
+
                 this.centerMarker = new kakao.maps.Marker({
                     map: map,
                     position: new kakao.maps.LatLng(this.objSellerInfo.lat, this.objSellerInfo.lng)
                 });
+
                 var startLat,startLng,startLevel;
                 kakao.maps.event.addListener(map, 'zoom_start', function() {
                     startLat=map.getCenter().getLat();

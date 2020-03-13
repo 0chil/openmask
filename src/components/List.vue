@@ -7,9 +7,20 @@
                     <v-divider></v-divider>
                     <div v-for="(item,index) in storesByGeoData.stores" :key="index">
                         <v-list-item class="elevation-3 mb-1" :class="remain_stat2Color(item.remain_stat)" @click="openSellerInfo(item)">
-                            <v-icon class="mr-2" v-text="type2Icon(item.type)">mdi-pharmacy</v-icon>
+                            <v-icon class="mr-3" v-text="type2Icon(item.type)">mdi-pharmacy</v-icon>
+                            
                             <v-list-item-content>
-                                <v-list-item-title :class="remain_stat2TextColor(item.remain_stat)" v-text="item.name + ' (' + remain_stat2Text(item.remain_stat) + ')'" :aa="index"></v-list-item-title>
+                              <div>
+                              <v-badge
+                            offset-y="19"
+                            offset-x="-3"
+                            :content="remain_stat2Text(item.remain_stat)"
+                            :color="remain_stat2BadgeColor(item.remain_stat)"
+                            >
+                                <v-list-item-title :class="remain_stat2TextColor(item.remain_stat)" v-text="item.name" :aa="index"></v-list-item-title>
+                                
+                            </v-badge>
+                            </div>
                                 <v-list-item-subtitle :class="remain_stat2TextColor(item.remain_stat)" v-text="item.addr"></v-list-item-subtitle>
                             </v-list-item-content>
                         </v-list-item>
@@ -57,6 +68,18 @@
                     return 'grey--text text--darken-1';
                 }  
             },
+            remain_stat2BadgeColor(stat){
+                switch(stat){
+                  case 'few':
+                    return 'red darken-3';
+                  case 'some':
+                    return 'yellow darken-4';
+                  case 'plenty':
+                    return 'green darken-3';
+                  default:
+                    return 'grey darken-1';
+                }  
+            },
             remain_stat2Color(stat){
                 switch(stat){
                   case 'few':
@@ -72,13 +95,13 @@
             remain_stat2Text(stat){
                 switch(stat){
                   case 'few':
-                    return '2개~29개';
+                    return '2 ~ 29';
                   case 'some':
-                    return '30개~99개';
+                    return '30 ~ 99';
                   case 'plenty':
-                    return '100개~';
+                    return '100 ~';
                   case 'empty':
-                    return '0~1개';
+                    return '0 ~ 1';
                   default:
                     return '알수없음';
                 }  

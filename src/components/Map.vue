@@ -1,53 +1,81 @@
 <template>
   <div>
-    <vue-daum-map
-    :appKey="appKey"
-    :center.sync="center"
-    :level.sync="level"
-    :mapTypeId="mapTypeId"
-    :libraries="libraries"
-    @load="onLoad"
-    style="width:100%;height:100%"/>
-    <!-- <v-btn @click="getStoresByGeo_Center" elevation="10" style="position:absolute;top:0;z-index:999;">aa</v-btn> -->
+    <div
+    ref="map2"
+    style="width:100%;height:100%"
+    />
   </div>
 </template>
-
-<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=6f428547f8ff26402d2ede8daa8b240c"></script>
-
+<script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=6f428547f8ff26402d2ede8daa8b240c&autoload=false"></script>
 <script>
-  import VueDaumMap from 'vue-daum-map';
+
   export default {
     name: 'Map',
 
     components:{
-      VueDaumMap,
+      
     },
     
     props: {
       getStoresByGeoParent: {type: Function},
-      location:{},
+      showSellerInfo:{},
     },
 
     data: () => ({
       appKey: '6f428547f8ff26402d2ede8daa8b240c',
       center: {lat:33.450701, lng:126.570667},
       level: 4, 
-      mapTypeId: VueDaumMap.MapTypeId.NORMAL, 
       libraries: [],
       map: null,
       centerMarker:null,
       centerCircle:null,
       markerArray:[],
 
+      location:null,
+      gettingLocation: false,
+      errorStr:null,
     }),
 
+    
+    mounted:function(){
+      let kakaomapScript = document.createElement('script');
+      kakaomapScript.setAttribute('src', '//dapi.kakao.com/v2/maps/sdk.js?appkey=6f428547f8ff26402d2ede8daa8b240c&autoload=false');
+      document.head.appendChild(kakaomapScript);
+      
+      var ref=this;
+      document.onreadystatechange = () => {
+        if (document.readyState == "complete") {
+          kakao.maps.load(function() {
+            ref.loadMap();
+          });
+        }
+      }
+      this.getLocation();
+    },
+
+    watch: {
+      showSellerInfo(bool) {
+        this.$forceUpdate();
+      }
+    },
+
     methods: {
+      loadMap:function(){
+      var option = { 
+        center: new kakao.maps.LatLng(33.450701, 126.570667),
+        level: 3, 
+      };
+      var map=new kakao.maps.Map(this.$refs.map2,option);
+      this.map= map;
+      this.onLoad(map);
+      },
       getStoresByGeo(a,b){
         this.getStoresByGeoParent(a,b);
       },
       // 지도가 로드 완료되면 load 이벤트 발생
       onLoad (map) {
-        this.map = map;
+        //this.map = map;
+        map.setMaxLevel(7);
         if(this.location){
           this.setCenter();
         }
@@ -68,9 +96,25 @@
             ref.getStoresByGeo(map.getCenter().getLat(),map.getCenter().getLng());
         });
       },
+      getLocation(){
+        if(!("geolocation" in navigator)) {
+          this.errorStr = 'Geolocation is not available.';
+          alert(this.errorStr);
+          return;
+        }
+        this.gettingLocation = true;
+        navigator.geolocation.getCurrentPosition(pos => {
+          this.gettingLocation = false;
+          this.location = pos;
+          if(this.map) this.setCenter();
+        }, err => {
+          this.gettingLocation = false;
+          this.errorStr = err.message;
+        })
+      },
 
       setCenter: function(){
-        if(!this.location) {return;}
+        if(this.gettingLocation) return;
         if(this.centerMarker) this.centerMarker.setMap(null);
         this.map.setLevel(4);
         this.map.setCenter(new kakao.maps.LatLng(this.location.coords.latitude,this.location.coords.longitude));
@@ -84,10 +128,8 @@
         this.centerMarker.setMap(this.map);
         this.getStoresByGeo(this.map.getCenter().getLat(),this.map.getCenter().getLng());
       },
-
-      
     },
-
+    
     
 
   }

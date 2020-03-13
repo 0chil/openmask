@@ -29,7 +29,7 @@
         data() {
             return {
                 notice: true,
-                msg:'애웅잉 ㅎㅎ'
+                msg:'Beta'
             }
         },
         methods: {
@@ -41,5 +41,9 @@
                 this.$cookies.set('todayClose','Y', 86400);
             }
         },
+        mounted(){
+            if(this.$cookies.get('todayClose')=="Y")
+                this.notice=false;
+        }
     }
 </script>

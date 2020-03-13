@@ -1,11 +1,6 @@
 <template>
   <div>
-    <SellerInfo 
-    :objSellerInfo="objSellerInfo" 
-    :closeSellerInfo="closeSellerInfo" 
-    v-if="showSellerInfo"
-    />
-    <v-app v-if="!showSellerInfo">
+    <v-app v-show="true/*!showSellerInfo*/">
       <v-app-bar
         app
         color="primary lighten-3"
@@ -35,17 +30,26 @@
         />
         <Map
           ref="mapView"
+          :showSellerInfo="showSellerInfo"
           :getStoresByGeoParent="getStoresByGeo"
           :location="location"
           style="width:100%;height:100%"
-          v-if="activeBtn==1"
+          v-show="activeBtn==1"
         />
         <About
           style="width:100%;height:100%"
           v-if="activeBtn==2"
         />
       </v-content>
-
+      <v-bottom-sheet v-model="showSellerInfo" inset >
+        <v-sheet class="text-center" height="100%">
+          <SellerInfo 
+            :objSellerInfo="objSellerInfo" 
+            :closeSellerInfo="closeSellerInfo" 
+            :showSellerInfo="showSellerInfo"
+          />
+        </v-sheet>
+      </v-bottom-sheet>
       <v-bottom-navigation
       :value="activeBtn"
       @change="onClickBottomNav"
@@ -67,7 +71,7 @@
           <v-icon>mdi-help-circle</v-icon>
         </v-btn>
       </v-bottom-navigation>
-      <!-- <Notice v-if="showNotice"/> -->
+      <Notice v-if="showNotice"/>
     </v-app>
   </div>
 </template>
@@ -119,46 +123,37 @@ export default {
       this.objSellerInfo=obj;
       this.showSellerInfo=true;
     },
-    remain_stat2Number(stat){
-      switch(stat){
-        case 'few':
-          return 4;
-        case 'some':
-          return 3;
-        case 'plenty':
-          return 2;
-        default:
-          return 0;
-      }
-    },
-    sortStoresByGeoData:function(){
+    sortStoresByGeoData(){
       var ref=this;
-      //this.storesByGeoData.stores.sort();
-      this.storesByGeoData.stores.sort(function(a,b){
-        var aa=ref.remain_stat2Number(a), bb=ref.remain_stat2Number(b);
-        return aa-bb;
+      // //this.storesByGeoData.stores.splice(0,1);
+      // for(var i=0;i<this.storesByGeoData.count;i++){
+      //   this.storesByGeoData.stores[i].remain_stat
+      // }
+      this.storesByGeoData.stores = this.storesByGeoData.stores.sort(function(a,b){
+        var x=ref.remain_stat2Number(a.remain_stat), y=ref.remain_stat2Number(b.remain_stat);
+        return ((x < y) ? -1 : ((x > y) ? 1 : 0));
       });
     },
     getStoresByGeo: function(lat, lng){
-      if(this.activeBtn != 0){
-        if(this.$refs.mapView.centerCircle) this.$refs.mapView.centerCircle.setMap(null);
-          this.$refs.mapView.centerCircle = new kakao.maps.Circle({
-            map: this.$refs.mapView.map,
-            center : new kakao.maps.LatLng(lat,lng), 
-            radius: this.Level2Range(this.$refs.mapView.map.getLevel()),
-            strokeWeight: 3, 
-            strokeColor: '#75B8FA', 
-            strokeOpacity: 1, 
-            strokeStyle: 'solid', 
-            fillColor: '#CFE7FF', 
-            fillOpacity: 0.1  
-          });
-      }
-      axios.get('https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1/storesByGeo/json?lat='+ lat +'&lng='+ lng +'&m='+this.Level2Range(this.activeBtn==0?1500:this.$refs.mapView.map.getLevel())) 
+      if(this.$refs.mapView.centerCircle) this.$refs.mapView.centerCircle.setMap(null);
+        this.$refs.mapView.centerCircle = new kakao.maps.Circle({
+          map: this.$refs.mapView.map,
+          center : new kakao.maps.LatLng(lat,lng), 
+          radius: this.Level2Range(this.$refs.mapView.map.getLevel()),
+          strokeWeight: 3, 
+          strokeColor: '#75B8FA', 
+          strokeOpacity: 1, 
+          strokeStyle: 'solid', 
+          fillColor: '#CFE7FF', 
+          fillOpacity: 0.1  
+        });
+      axios.get('https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1/storesByGeo/json?lat='+ lat +'&lng='+ lng +'&m='+this.Level2Range(this.$refs.mapView.map.getLevel())) 
       .then(res => {
+          //check
           this.storesByGeoData=res.data;
           this.sortStoresByGeoData();
           if(this.activeBtn == 0) return;
+
           var redImageSrc = require('@/assets/redmask.png'),
               yellowImageSrc = require('@/assets/yellowmask.png'),
               greenImageSrc = require('@/assets/greenmask.png'),
@@ -206,25 +201,38 @@ export default {
             return 3500;
           else return 5000;
     },
+    remain_stat2Number(stat){
+      switch(stat){
+        case 'plenty':
+          return 1;
+        case 'some':
+          return 2;
+        case 'few':
+          return 3;
+        case 'empty':
+          return 4;
+        default:
+          return 5;
+      }
+    },
+    getLocation(){
+      if(!("geolocation" in navigator)) {
+        this.errorStr = 'Geolocation is not available.';
+        alert(this.errorStr);
+        return;
+      }
+      this.gettingLocation = true;
+      navigator.geolocation.getCurrentPosition(pos => {
+        this.gettingLocation = false;
+        this.location = pos;
+      }, err => {
+        this.gettingLocation = false;
+        this.errorStr = err.message;
+      })
+    },
   },
-  created(){
-    if(this.$cookies.get('todayClose')=="Y")
-      this.showNotice=false;
-
-    if(!("geolocation" in navigator)) {
-      this.errorStr = 'Geolocation is not available.';
-      alert(this.errorStr);
-      return;
-    }
-    this.gettingLocation = true;
-    navigator.geolocation.getCurrentPosition(pos => {
-      this.gettingLocation = false;
-      this.location = pos;
-      if(this.$refs.mapView) {this.$refs.mapView.setCenter();}
-    }, err => {
-      this.gettingLocation = false;
-      this.errorStr = err.message;
-    })
+  mounted(){
+    this.getLocation();
   },
 };
 </script>

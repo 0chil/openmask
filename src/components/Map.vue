@@ -1,8 +1,10 @@
 <template>
   <div>
-        <v-row style="position:absolute;z-index:99;right:0">
-        <v-checkbox on-icon="mdi-filter" off-icon="mdi-filter" inset class="mt-1 mr-4" v-model="filterEnabled" messages="0~1"/>
-        </v-row>
+        <div style="position:absolute;z-index:99;right:0;">
+          <v-btn class="mt-1 mr-1" icon text :color="filterEnabled?'dark':'primary'" @click="filterEnabled=!filterEnabled"><v-icon large>mdi-map-marker</v-icon></v-btn>
+          <br><b :class="filterEnabled?'dark--text':'primary--text'">0~1</b>
+          <!-- <v-checkbox on-icon="" off-icon="" inset class="mt-1" v-model="filterEnabled" messages="0~1"/> -->
+        </div>
     <div
     ref="map2"
     style="width:100%;height:100%"

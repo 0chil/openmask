@@ -128,7 +128,7 @@ export default {
 
   watch:{
     filterZero(bool){
-      this.getStoresByGeo(this.location.coords.latitude, this.location.coords.longitude);
+      this.getStoresByGeo(this.$refs.mapView.map.getCenter().getLat(), this.$refs.mapView.map.getCenter().getLng());
     }
   },
 

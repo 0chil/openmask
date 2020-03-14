@@ -2,7 +2,7 @@
 <div>
             <v-card>
                 <v-list rounded class="px-3">
-                  <v-subheader><div v-text="this.objSellerInfo.name"/><v-spacer/><v-btn class="float-right" @click="closeSellerInfo" color="primary lighten-3" ><v-icon>mdi-close</v-icon></v-btn></v-subheader>
+                  <v-subheader><div v-text="this.objSellerInfo.name"/><v-spacer/><v-btn @click="closeSellerInfo" color="primary lighten-3" ><v-icon>mdi-close</v-icon></v-btn></v-subheader>
                   
                     <v-list-item>
                       <v-list-item-icon>
@@ -33,7 +33,7 @@
                     </v-list-item>
                 </v-list>
             </v-card>
-            <v-card class="mt-3">
+            <v-card class="mt-1">
                 <v-list-item class="text-center">
                         <v-list-item-content>
                             <div>
@@ -45,8 +45,8 @@
                         </v-list-item-content>
                 </v-list-item>
             </v-card>
-            <v-card class="mt-3">
-                <v-subheader> <v-switch v-model="showStaticMap" label="지도 고정"></v-switch></v-subheader>
+            <v-card class="mt-1">
+                <v-subheader> <v-switch flat v-model="showStaticMap" label="고정"></v-switch></v-subheader>
                 <vue-daum-map
                 :appKey="appKey"
                 :center.sync="center"
@@ -86,16 +86,6 @@
                 centerMarker:null,
             }
         },
-        mounted:function(){
-
-            // var option = { 
-            //     center: new kakao.maps.LatLng(this.objSellerInfo.lat, this.objSellerInfo.lng),
-            //     level: 3, 
-            // };
-            // var map=new kakao.maps.Map(this.$refs.map,option);
-            // this.map= map;
-            // this.onLoad(map);
-        },
         watch:{
           showStaticMap(bool){
             if(bool){
@@ -110,37 +100,29 @@
           },
         },
         methods:{
-            onBtnDaumMap:function(){
+            onBtnDaumMap(){
                 window.open('https://map.kakao.com/link/map/'+ this.objSellerInfo.name +','+this.objSellerInfo.lat+','+this.objSellerInfo.lng);
             },
-            onBtnNaverMap:function(){
+            onBtnNaverMap(){
                 window.open('http://map.naver.com/index.nhn?enc=utf8&level=2&lng='+ this.objSellerInfo.lng +'&lat='+this.objSellerInfo.lat+'&pinTitle='+this.objSellerInfo.name);
             },
-            onBtnGoogleMap:function(){
+            onBtnGoogleMap(){
                 window.open('https://www.google.com/maps/search/?api=1&query='+this.objSellerInfo.lat+','+ this.objSellerInfo.lng);
             },
             onLoad (map) {
                 this.map=map;
                 map.setDraggable(false);
                 map.setZoomable(false);
-                map.setMaxLevel(6);
+                map.setMaxLevel(7);
 
                 this.centerMarker = new kakao.maps.Marker({
-                    map: map,
-                    position: new kakao.maps.LatLng(this.objSellerInfo.lat, this.objSellerInfo.lng)
-                });
-
-                var startLat,startLng,startLevel;
-                kakao.maps.event.addListener(map, 'zoom_start', function() {
-                    startLat=map.getCenter().getLat();
-                    startLng=map.getCenter().getLng();
-                    startLevel=map.getLevel();
-                });
-                kakao.maps.event.addListener(map, 'zoom_changed', function() {
-                    if(map.getLevel()>startLevel)
-                        map.setCenter(new kakao.maps.LatLng(startLat,startLng));
+                  map: map,
+                  position: new kakao.maps.LatLng(this.objSellerInfo.lat, this.objSellerInfo.lng)
                 });
             },
+
+
+
             remain_stat2Text(stat){
                 switch(stat){
                   case 'few':

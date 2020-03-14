@@ -1,11 +1,9 @@
 <template>
-    <v-container>
         <v-card elevation-10>
             <v-list two-line>
-                <template>
                     <v-subheader>마스크 판매처</v-subheader>
                     <v-divider></v-divider>
-                    <div v-for="(item,index) in storesByGeoData.stores" :key="index">
+                    <div v-for="(item,index) in storesByGeoDataFiltered" :key="index">
                         <v-list-item class="elevation-3 mb-1" :class="remain_stat2Color(item.remain_stat)" @click="openSellerInfo(item)">
                             <v-icon class="mr-3" v-text="type2Icon(item.type)">mdi-pharmacy</v-icon>
                             
@@ -25,37 +23,18 @@
                             </v-list-item-content>
                         </v-list-item>
                     </div>
-                </template>
             </v-list>
         </v-card>
-    </v-container>
 </template>
 
 <script>
-    import axios from 'axios';
 
     export default {
-
         props: {
-            storesByGeoData:{},
-            location:{},
+            storesByGeoDataFiltered:{},
             openSellerInfo:{ type: Function, },
-
-        },
-        data() {
-            return {
-
-            }
         },
         methods: {
-            getStoresByGeo: function(lat, lng){
-                axios.get('https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1/storesByGeo/json?lat='+ lat +'&lng='+ lng +'&m='+this.Level2Range(this.map.getLevel())) 
-                .then(res => {
-                  for(var i=0;i<res.data.count;i++){
-                    //
-                  }
-                })
-            },
             remain_stat2TextColor(stat){
                 switch(stat){
                   case 'few':

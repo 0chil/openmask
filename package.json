@@ -2,7 +2,7 @@
   "name": "openmask",
   "version": "0.1.0",
   "private": true,
-  "homepage":"goraegori.github.io/",
+  "homepage": "goraegori.github.io/",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
@@ -14,6 +14,7 @@
     "vue": "^2.6.11",
     "vue-cookies": "^1.7.0",
     "vue-daum-map": "^1.0.15",
+    "vue-meta": "^2.3.3",
     "vuetify": "^2.2.17"
   },
   "devDependencies": {

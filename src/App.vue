@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-app v-show="true/*!showSellerInfo*/">
+    <v-app>
       <v-app-bar
         app
         color="primary lighten-3"
@@ -10,7 +10,7 @@
         <div class="d-flex align-center" @click="onClickLogo" style="cursor:pointer;">
           <v-icon
           large
-          alt="My Mask"
+          alt="OpenMask"
           class="mr-1 white--text">
             mdi-medical-bag
           </v-icon>
@@ -23,16 +23,16 @@
       <v-content>
         <List
           style="width:100%;height:100%"
-          v-if="activeBtn==0"
-          :storesByGeoData="storesByGeoData"
+          :storesByGeoDataFiltered="storesByGeoDataFiltered"
           :openSellerInfo="openSellerInfo"
-          :location="location"
+          v-show="activeBtn==0"
         />
         <Map
           ref="mapView"
           :showSellerInfo="showSellerInfo"
-          :getStoresByGeoParent="getStoresByGeo"
-          :location="location"
+          :getStoresByGeo="getStoresByGeo"
+          :activeBtn="activeBtn"
+          :runFilter="runFilter"
           style="width:100%;height:100%"
           v-show="activeBtn==1"
         />
@@ -41,16 +41,18 @@
           v-if="activeBtn==2"
         />
       </v-content>
-      <v-bottom-sheet v-model="showSellerInfo" inset >
-        <v-sheet height="100%">
+      <v-dialog v-model="showSellerInfo" :fullscreen="this.$vuetify.breakpoint.name=='xs'">
+        <v-card>
           <SellerInfo 
             :objSellerInfo="objSellerInfo" 
             :closeSellerInfo="closeSellerInfo" 
             :showSellerInfo="showSellerInfo"
             v-if="showSellerInfo"
           />
-        </v-sheet>
-      </v-bottom-sheet>
+        </v-card>
+      </v-dialog>
+      <Notice v-if="showNotice"/>
+
       <v-bottom-navigation
       :value="activeBtn"
       @change="onClickBottomNav"
@@ -72,12 +74,11 @@
           <v-icon>mdi-help-circle</v-icon>
         </v-btn>
       </v-bottom-navigation>
-      <Notice v-if="showNotice"/>
     </v-app>
   </div>
 </template>
 
-<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=6f428547f8ff26402d2ede8daa8b240c"></script>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=6f428547f8ff26402d2ede8daa8b240c&autoload=false"></script>
 
 <script>
 import List from './components/List';
@@ -89,6 +90,16 @@ import axios from 'axios';
 
 export default {
   name: 'App',
+  metaInfo: {
+    titleTemplate: 'OpenMask',
+    meta:[
+      {name: 'apple-mobile-web-app-capable', content:'yes'},
+      {name: 'mobile-web-app-capable', content:'yes'},
+    ],
+    htmlAttrs: {
+      lang: 'ko',
+    }
+  },
 
   components: {
     List,Map,About,Notice,SellerInfo
@@ -98,14 +109,29 @@ export default {
     activeBtn:1,
     showNotice:true,
     storesByGeoData:null,
+    storesByGeoDataFiltered:null,
+    markerArray:[],
 
     showSellerInfo:false,
     objSellerInfo:null,
+    filterZero:true,
 
     location:null,
     gettingLocation: false,
     errorStr:null,
+
+    redImageSrc: require('@/assets/redmask.png'),
+    yellowImageSrc: require('@/assets/yellowmask.png'),
+    greenImageSrc: require('@/assets/greenmask.png'),
+    greyImageSrc: require('@/assets/greymask.png'),
   }),
+
+  watch:{
+    filterZero(bool){
+      this.getStoresByGeo(this.location.coords.latitude, this.location.coords.longitude);
+    }
+  },
+
   methods:{
     onClickLogo(){
       window.location="/";
@@ -114,8 +140,7 @@ export default {
       this.activeBtn=pos;
     },
     onClickCenterMe(){
-      if(this.activeBtn==1) this.$refs.mapView.setCenter();
-      else if(this.activeBtn==0) this.getStoresByGeo(this.location.coords.latitude, this.location.coords.longitude);
+      this.$refs.mapView.setCenter();
     },
     closeSellerInfo(){
       this.showSellerInfo = !this.showSellerInfo;
@@ -131,12 +156,26 @@ export default {
         return ((x < y) ? -1 : ((x > y) ? 1 : 0));
       });
     },
-    getStoresByGeo: function(lat, lng){
+    runFilter(bool){
+      this.filterZero=bool;
+      if(this.filterZero){
+        for(var i=0;i<this.storesByGeoData.stores.length;i++){
+          if(this.storesByGeoData.stores[i].remain_stat == 'empty' || this.storesByGeoData.stores[i].remain_stat == 'null'){
+            this.storesByGeoDataFiltered.splice(i,this.storesByGeoData.stores.length-i);
+            break;
+          }
+        }
+      }
+      else{
+        this.storesByGeoDataFiltered=this.storesByGeoData.stores;
+      }
+    },
+    getStoresByGeo(lat, lng){
       if(this.$refs.mapView.centerCircle) this.$refs.mapView.centerCircle.setMap(null);
         this.$refs.mapView.centerCircle = new kakao.maps.Circle({
           map: this.$refs.mapView.map,
           center : new kakao.maps.LatLng(lat,lng), 
-          radius: this.Level2Range(this.$refs.mapView.map.getLevel()),
+          radius: 2000,
           strokeWeight: 3, 
           strokeColor: '#75B8FA', 
           strokeOpacity: 1, 
@@ -144,30 +183,31 @@ export default {
           fillColor: '#CFE7FF', 
           fillOpacity: 0.1  
         });
-      axios.get('https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1/storesByGeo/json?lat='+ lat +'&lng='+ lng +'&m='+this.Level2Range(this.$refs.mapView.map.getLevel())) 
+        
+      var imageSize = new kakao.maps.Size(30, 40),
+          imageSizeMd = new kakao.maps.Size(20, 25),
+          imageSizeSm = new kakao.maps.Size(15, 20);
+      var redMarkerImage = new kakao.maps.MarkerImage(this.redImageSrc,imageSizeMd,{}),
+          yellowMarkerImage = new kakao.maps.MarkerImage(this.yellowImageSrc,imageSize,{}),
+          greenMarkerImage = new kakao.maps.MarkerImage(this.greenImageSrc,imageSize,{}),
+          greyMarkerImage = new kakao.maps.MarkerImage(this.greyImageSrc,imageSizeSm,{});
+      axios.get('https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1/storesByGeo/json?lat='+ lat +'&lng='+ lng +'&m=2000') 
       .then(res => {
-          //check
-          this.storesByGeoData=res.data;
-          this.sortStoresByGeoData();
-          if(this.activeBtn == 0) return;
+        //check
+        this.storesByGeoData=res.data;
+        this.sortStoresByGeoData();
+        if(this.filterZero){
+          this.storesByGeoDataFiltered=this.storesByGeoData.stores.slice();
+          this.runFilter(this.filterZero);
+        }
 
-          var redImageSrc = require('@/assets/redmask.png'),
-              yellowImageSrc = require('@/assets/yellowmask.png'),
-              greenImageSrc = require('@/assets/greenmask.png'),
-              greyImageSrc = require('@/assets/greymask.png'),
-              imageSize = new kakao.maps.Size(30, 40),
-              imageSizeMd = new kakao.maps.Size(20, 25),
-              imageSizeSm = new kakao.maps.Size(15, 20);
-          var redMarkerImage = new kakao.maps.MarkerImage(redImageSrc,imageSizeMd,{}),
-              yellowMarkerImage = new kakao.maps.MarkerImage(yellowImageSrc,imageSize,{}),
-              greenMarkerImage = new kakao.maps.MarkerImage(greenImageSrc,imageSize,{}),
-              greyMarkerImage = new kakao.maps.MarkerImage(greyImageSrc,imageSizeSm,{});
-          if(this.$refs.mapView.markerArray.length)
-            for(var i=0;i<this.$refs.mapView.markerArray.length;i++)
-              this.$refs.mapView.markerArray[i].setMap(null);
+        //Empty markers
+        if(this.markerArray)
+          for(var i=0;i<this.markerArray.length;i++)
+            this.markerArray[i].setMap(null);
               
-        var ref=this;
-        this.storesByGeoData.stores.forEach(function(store){
+        var thisref=this;
+        this.storesByGeoDataFiltered.forEach(function(store){
           var markerImage = null;
           switch(store.remain_stat){
             case 'plenty':
@@ -188,21 +228,12 @@ export default {
           });
           var thisData=store;
           kakao.maps.event.addListener(thisMarker, 'click', function() {
-            ref.openSellerInfo(store);
+            thisref.openSellerInfo(store);
           });
-          ref.$refs.mapView.markerArray.push(thisMarker);
-          thisMarker.setMap(ref.$refs.mapView.map);
+          thisref.markerArray.push(thisMarker);
+          thisMarker.setMap(thisref.$refs.mapView.map);
         });
       })
-    },
-    Level2Range: function(level){
-          if(level<5)
-            return 1500;
-          else if(level<8)
-            return 2500;
-          else if(level<10)
-            return 3500;
-          else return 5000;
     },
     remain_stat2Number(stat){
       switch(stat){
@@ -236,6 +267,6 @@ export default {
   },
   mounted(){
     this.getLocation();
-  },
+  }
 };
 </script>

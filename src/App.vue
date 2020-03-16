@@ -140,6 +140,7 @@ export default {
       this.activeBtn=pos;
     },
     onClickCenterMe(){
+      this.getLocation();
       this.$refs.mapView.setCenter();
     },
     closeSellerInfo(){

@@ -109,6 +109,8 @@
         kakao.maps.event.addListener(map, 'zoom_changed', function() {
           if(map.getLevel()>startLevel)
             map.setCenter(startCenter);
+          else
+          thisref.getStoresByGeo(map.getCenter().getLat(),map.getCenter().getLng());
         });
       },
 

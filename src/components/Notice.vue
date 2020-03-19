@@ -7,7 +7,7 @@
                 <v-card-text class="text-center">
                     <img :src="greyImageSrc" width="30"><h3>0~1개</h3>
                     <img :src="redImageSrc" width="30"><h3>2~29개</h3>
-                    <img :src="yellowImageSrc" width="30"><h3>30~09개</h3>
+                    <img :src="yellowImageSrc" width="30"><h3>30~99개</h3>
                     <img :src="greenImageSrc" width="30"><h3>100개 이상</h3>
                 </v-card-text>
                 <v-card-actions>

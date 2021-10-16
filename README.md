@@ -2,7 +2,7 @@
 ## 맵 기반 마스크 재고 확인
 - 2020년 2월에 진행한 일회성 단기 프로젝트
 - Vue를 처음 사용했습니다.
-- [블로그 회고록 보기](shorturl.at/osJN7)
+- [블로그 회고록 보기](https://shorturl.at/osJN7)
 - 현재 [API 운영 종료](https://www.data.go.kr/bbs/ntc/selectNotice.do?originId=NOTICE_0000000001728)로 작동하지 않습니다.
 ## 스크린샷
 
